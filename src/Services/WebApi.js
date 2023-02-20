@@ -48,9 +48,9 @@ async function setDisplayOptions(options, isPreview) {
 	newOptions.buttonLayoutRight = parseInt(options.buttonLayoutRight);
 	newOptions.splashMode = parseInt(options.splashMode);
 	newOptions.splashChoice = parseInt(options.splashChoice);
-	newOptions.buttonLayoutCustomOptions.params.layout = parseInt(options.buttonLayoutCustomOptions.params.layout);
-	newOptions.buttonLayoutCustomOptions.paramsRight.layout = parseInt(options.buttonLayoutCustomOptions.paramsRight.layout);
 	newOptions.splashImage = '';
+	newOptions.displayButtonLayouts = null;
+	newOptions.displayButtonLayoutsRight = null;
 	const url = !isPreview ? `${baseUrl}/api/setDisplayOptions` : `${baseUrl}/api/setPreviewDisplayOptions`;
 	return axios.post(url, newOptions)
 		.then((response) => {
@@ -177,6 +177,16 @@ async function reboot() {
 		.catch(console.error);
 }
 
+async function getDisplayButtonLayouts() {
+	const layout = await axios.get(`${baseUrl}/api/getDisplayButtonLayouts`)
+		.then((response) => response.data)
+		.catch(console.error);
+	const layoutRight = await axios.get(`${baseUrl}/api/getDisplayButtonLayoutsRight`)
+		.then((response) => response.data)
+		.catch(console.error);
+	return Promise.resolve({ ...layout, ...layoutRight });
+}
+
 const WebApi = {
 	resetSettings,
 	getDisplayOptions,
@@ -193,7 +203,8 @@ const WebApi = {
 	setSplashImage,
 	getFirmwareVersion,
 	getMemoryReport,
-	reboot
+	reboot,
+	getDisplayButtonLayouts,
 };
 
 export default WebApi;

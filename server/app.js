@@ -204,23 +204,59 @@ app.get('/api/getFirmwareVersion', (req, res) => {
 	});
 });
 
-app.get('/api/getButtonLayoutCustomOptions', (req, res) => {
-	console.log('/api/getButtonLayoutCustomOptions');
+app.get('/api/getDisplayButtonLayouts', (req, res) => {
+	console.log('/api/getDisplayButtonLayouts');
 	return res.send({
-		params: {
-			layout: 2,
-			startX: 8,
-			startY: 28,
-			buttonRadius: 8,
-			buttonPadding: 2
-		},
-		paramsRight: {
-			layout: 9,
-			startX: 8,
-			startY: 28,
-			buttonRadius: 8,
-			buttonPadding: 2
-		}
+		"layouts": [
+			{
+				"label": "Stick",
+				"value": 0,
+				"params": {
+					"startX": 8,
+					"startY": 28,
+					"buttonRadius": 8,
+					"buttonPadding": 2
+				}
+			},
+			{
+				"label": "Stickless",
+				"value": 1,
+				"params": {
+					"startX": 8,
+					"startY": 20,
+					"buttonRadius": 8,
+					"buttonPadding": 2
+				}
+			}
+		]
+	})
+});
+
+app.get('/api/getDisplayButtonLayoutsRight', (req, res) => {
+	console.log('/api/getDisplayButtonLayoutsRight');
+	return res.send({
+		"layoutsRight": [
+			{
+				"label": "Arcade",
+				"value": 0,
+				"params": {
+					"startX": 8,
+					"startY": 28,
+					"buttonRadius": 8,
+					"buttonPadding": 2
+				}
+			},
+			{
+				"label": "Stickless",
+				"value": 1,
+				"params": {
+					"startX": 8,
+					"startY": 20,
+					"buttonRadius": 8,
+					"buttonPadding": 2
+				}
+			}
+		]
 	})
 });
 

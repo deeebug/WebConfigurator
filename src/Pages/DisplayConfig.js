@@ -91,23 +91,21 @@ const defaultValues = {
 	splashMode: 3,
 	splashImage: Array(16*64).fill(0), // 128 columns represented by bytes so 16 and 64 rows
 	invertSplash: false,
-	buttonLayoutCustomOptions: {
-		params: {
-			layout: 0,
-			startX: 8,
-			startY: 28,
-			buttonRadius: 8,
-			buttonPadding: 2
-		},
-		paramsRight: {
-			layout: 3,
-			startX: 8,
-			startY: 28,
-			buttonRadius: 8,
-			buttonPadding: 2
-		}
+	displayButtonLayoutParams: {
+		startX: 8,
+		startY: 28,
+		buttonRadius: 8,
+		buttonPadding: 2
+	},
+	displayButtonLayoutParamsRight: {
+		startX: 8,
+		startY: 28,
+		buttonRadius: 8,
+		buttonPadding: 2
 	},
 	displaySaverTimeout: 0,
+	displayButtonLayouts: [],
+	displayButtonLayoutsRight: [],
 };
 
 let usedPins = [];
@@ -129,21 +127,17 @@ const schema = yup.object().shape({
 	buttonLayout: buttonLayoutSchema,
 	buttonLayoutRight: buttonLayoutRightSchema,
 	splashMode: yup.number().required().oneOf(SPLASH_MODES.map(o => o.value)).label('Splash Screen'),
-	buttonLayoutCustomOptions: yup.object().shape({
-		params: yup.object().shape({
-			layout: buttonLayoutSchema,
-			startX: yup.number().required().min(0).max(128).label('Start X'),
-			startY: yup.number().required().min(0).max(64).label('Start Y'),
+	displayButtonLayoutParams: yup.object().shape({
+		startX: yup.number().required().min(-128).max(128).label('Start X'),
+		startY: yup.number().required().min(-128).max(64).label('Start Y'),
+		buttonRadius: yup.number().required().min(0).max(20).label('Button Radius'),
+		buttonPadding: yup.number().required().min(0).max(20).label('Button Padding')
+	}),
+	displayButtonLayoutParamsRight: yup.object().shape({
+			startX: yup.number().required().min(-128).max(128).label('Start X'),
+			startY: yup.number().required().min(-128).max(64).label('Start Y'),
 			buttonRadius: yup.number().required().min(0).max(20).label('Button Radius'),
 			buttonPadding: yup.number().required().min(0).max(20).label('Button Padding')
-		}),
-		paramsRight: yup.object().shape({
-			layout: buttonLayoutRightSchema,
-			startX: yup.number().required().min(0).max(128).label('Start X'),
-			startY: yup.number().required().min(0).max(64).label('Start Y'),
-			buttonRadius: yup.number().required().min(0).max(20).label('Button Radius'),
-			buttonPadding: yup.number().required().min(0).max(20).label('Button Padding')
-		})
 	}),
 	displaySaverTimeout: yup.number().required().oneOf(DISPLAY_SAVER_TIMEOUT_CHOICES.map(o => o.value)).label('Display Saver'),
 });
@@ -157,6 +151,9 @@ const FormContext = () => {
 			usedPins = data.usedPins;
 			const splashImageResponse = await WebApi.getSplashImage();
 			data.splashImage = splashImageResponse.splashImage;
+			const displayButtonLayouts = await WebApi.getDisplayButtonLayouts();
+			data.displayButtonLayouts = displayButtonLayouts.layouts;
+			data.displayButtonLayoutsRight = displayButtonLayouts.layoutsRight;
 			setValues(data);
 		}
 		fetchData();
@@ -204,10 +201,31 @@ const FormContext = () => {
 		await WebApi.setDisplayOptions(values, true)
 	}, [values.splashImage]);
 
+	useEffect(async () => {
+		const layout = values.displayButtonLayouts.find(a => a.value === values.buttonLayout);
+		console.log('values.displayButtonLayouts', values.displayButtonLayouts);
+		console.log('values.buttonLayout', values.buttonLayout);
+		console.log('layout', layout);
+		const newValues = {...values};
+		newValues.displayButtonLayoutParams.startX        = layout.params.startX       
+		newValues.displayButtonLayoutParams.startY        = layout.params.startY       
+		newValues.displayButtonLayoutParams.buttonRadius  = layout.params.buttonRadius 
+		newValues.displayButtonLayoutParams.buttonPadding = layout.params.buttonPadding
+		setValues(newValues);
+	}, [values.buttonLayout]);
+
+	useEffect(async () => {
+		const layoutRight = values.displayButtonLayoutsRight.find(a => a.value === values.buttonLayoutRight);
+		const newValues = {...values};
+		newValues.displayButtonLayoutParamsRight.startX        = layoutRight.params.startX       
+		newValues.displayButtonLayoutParamsRight.startY        = layoutRight.params.startY       
+		newValues.displayButtonLayoutParamsRight.buttonRadius  = layoutRight.params.buttonRadius 
+		newValues.displayButtonLayoutParamsRight.buttonPadding = layoutRight.params.buttonPadding
+		setValues(newValues);
+	}, [values.buttonLayoutRight]);
+
 	return null;
 };
-
-const isButtonLayoutCustom = (values) => values.buttonLayout == 12 || values.buttonLayoutRight == 16
 
 export default function DisplayConfigPage() {
 	const [saveMessage, setSaveMessage] = useState('');
@@ -393,7 +411,7 @@ export default function DisplayConfigPage() {
 								isInvalid={errors.buttonLayout}
 								onChange={handleChange}
 							>
-								{BUTTON_LAYOUTS.map((o, i) => <option key={`buttonLayout-option-${i}`} value={o.value}>{o.label}</option>)}
+								{values.displayButtonLayouts.map((o, i) => <option key={`buttonLayout-option-${i}`} value={o.value}>{o.label}</option>)}
 							</FormSelect>
 							<FormSelect
 								label="Button Layout (Right)"
@@ -405,7 +423,7 @@ export default function DisplayConfigPage() {
 								isInvalid={errors.buttonLayoutRight}
 								onChange={handleChange}
 							>
-								{BUTTON_LAYOUTS_RIGHT.map((o, i) => <option key={`buttonLayoutRight-option-${i}`} value={o.value}>{o.label}</option>)}
+								{values.displayButtonLayoutsRight.map((o, i) => <option key={`buttonLayoutRight-option-${i}`} value={o.value}>{o.label}</option>)}
 							</FormSelect>
 							<FormSelect
 								label="Splash Mode"
@@ -420,94 +438,68 @@ export default function DisplayConfigPage() {
 								{SPLASH_MODES.map((o, i) => <option key={`splashMode-option-${i}`} value={o.value}>{o.label}</option>)}
 							</FormSelect>
 						</Row>
-						{isButtonLayoutCustom(values) && <Row className="mb-3">
-							<FormLabel>Custom Button Layout Params</FormLabel>
+						<Row className="mb-3">
 							<Col sm="6">
-								<Form.Group as={Row}
-									name="buttonLayoutCustomOptions">
-									<Form.Label column>Layout Left</Form.Label>
-									<FormSelect
-										name="buttonLayoutCustomOptions.params.layout"
-										className="form-select-sm"
-										groupClassName="col-sm-10 mb-1"
-										value={values.buttonLayoutCustomOptions.params.layout}
-										onChange={handleChange}
-									>
-										{BUTTON_LAYOUTS.slice(0, -1).map((o, i) => <option key={`buttonLayout-option-${i}`} value={o.value}>{o.label}</option>)}
-									</FormSelect>
-								</Form.Group>
 								<Form.Group as={Row}>
 									<Form.Label column>Start X</Form.Label>
 									<Col sm="10">
-										<Field column className="mb-1" name="buttonLayoutCustomOptions.params.startX"
+										<Field column className="mb-1" name="displayButtonLayoutParams.startX"
 												type="number" as={Form.Control}/>
 									</Col>
 								</Form.Group>
 								<Form.Group as={Row}>
 									<Form.Label column>Start Y</Form.Label>
 									<Col sm="10">
-										<Field column className="mb-1" name="buttonLayoutCustomOptions.params.startY"
+										<Field column className="mb-1" name="displayButtonLayoutParams.startY"
 												type="number" as={Form.Control}/>
 									</Col>
 								</Form.Group>	
 									<Form.Group as={Row}>
 									<Form.Label column>Button Radius</Form.Label>
 									<Col sm="10">
-										<Field column className="mb-1" name="buttonLayoutCustomOptions.params.buttonRadius"
+										<Field column className="mb-1" name="displayButtonLayoutParams.buttonRadius"
 												type="number" as={Form.Control}/>
 									</Col>
 								</Form.Group>
 								<Form.Group as={Row}>
 									<Form.Label column>Button Padding</Form.Label>
 									<Col sm="10">
-										<Field column className="mb-1" name="buttonLayoutCustomOptions.params.buttonPadding"
+										<Field column className="mb-1" name="displayButtonLayoutParams.buttonPadding"
 												type="number" as={Form.Control}/>
 									</Col>
 								</Form.Group>		
 							</Col>
 							<Col sm="6">
 								<Form.Group as={Row}>
-									<Form.Label column>Layout Right</Form.Label>
-								<FormSelect
-									name="buttonLayoutCustomOptions.paramsRight.layout"
-									className="form-select-sm"
-									groupClassName="col-sm-10 mb-1"
-									value={values.buttonLayoutCustomOptions.paramsRight.layout}
-									onChange={handleChange}
-								>
-									{BUTTON_LAYOUTS_RIGHT.slice(0, -1).map((o, i) => <option key={`buttonLayoutRight-option-${i}`} value={o.value}>{o.label}</option>)}
-								</FormSelect>
-								</Form.Group>
-								<Form.Group as={Row}>
 									<Form.Label column>Start X</Form.Label>
 									<Col sm="10">
-										<Field column className="mb-1" name="buttonLayoutCustomOptions.paramsRight.startX"
+										<Field column className="mb-1" name="displayButtonLayoutParamsRight.startX"
 												type="number" as={Form.Control}/>
 									</Col>
 								</Form.Group>
 								<Form.Group as={Row}>
 									<Form.Label column>Start Y</Form.Label>
 									<Col sm="10">
-										<Field column className="mb-1" name="buttonLayoutCustomOptions.paramsRight.startY"
+										<Field column className="mb-1" name="displayButtonLayoutParamsRight.startY"
 												type="number" as={Form.Control}/>
 									</Col>
 								</Form.Group>	
 									<Form.Group as={Row}>
 									<Form.Label column>Button Radius</Form.Label>
 									<Col sm="10">
-										<Field column className="mb-1" name="buttonLayoutCustomOptions.paramsRight.buttonRadius"
+										<Field column className="mb-1" name="displayButtonLayoutParamsRight.buttonRadius"
 												type="number" as={Form.Control}/>
 									</Col>
 								</Form.Group>
 								<Form.Group as={Row}>
 									<Form.Label column>Button Padding</Form.Label>
 									<Col sm="10">
-										<Field column className="mb-1" name="buttonLayoutCustomOptions.paramsRight.buttonPadding"
+										<Field column className="mb-1" name="displayButtonLayoutParamsRight.buttonPadding"
 												type="number" as={Form.Control}/>
 									</Col>
 								</Form.Group>
 							</Col>
-						</Row>}
+						</Row>
 						<Row className="mb-3">
 							<FormSelect
 									label="Display Saver Timeout"
