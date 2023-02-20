@@ -400,7 +400,19 @@ export default function DisplayConfigPage() {
 								{ON_OFF_OPTIONS.map((o, i) => <option key={`invertDisplay-option-${i}`} value={o.value}>{o.label}</option>)}
 							</FormSelect>
 						</Row>
-						<Row className="mb-3">
+						<Row>
+							<FormSelect
+								label="Splash Mode"
+								name="splashMode"
+								className="form-select-sm"
+								groupClassName="col-sm-3 mb-3"
+								value={values.splashMode}
+								error={errors.splashMode}
+								isInvalid={errors.splashMode}
+								onChange={handleChange}
+							>
+								{SPLASH_MODES.map((o, i) => <option key={`splashMode-option-${i}`} value={o.value}>{o.label}</option>)}
+							</FormSelect>
 							<FormSelect
 								label="Button Layout (Left)"
 								name="buttonLayout"
@@ -426,82 +438,6 @@ export default function DisplayConfigPage() {
 								{values.displayButtonLayoutsRight.map((o, i) => <option key={`buttonLayoutRight-option-${i}`} value={o.value}>{o.label}</option>)}
 							</FormSelect>
 							<FormSelect
-								label="Splash Mode"
-								name="splashMode"
-								className="form-select-sm"
-								groupClassName="col-sm-3 mb-3"
-								value={values.splashMode}
-								error={errors.splashMode}
-								isInvalid={errors.splashMode}
-								onChange={handleChange}
-							>
-								{SPLASH_MODES.map((o, i) => <option key={`splashMode-option-${i}`} value={o.value}>{o.label}</option>)}
-							</FormSelect>
-						</Row>
-						<Row className="mb-3">
-							<Col sm="6">
-								<Form.Group as={Row}>
-									<Form.Label column>Start X</Form.Label>
-									<Col sm="10">
-										<Field column className="mb-1" name="displayButtonLayoutParams.startX"
-												type="number" as={Form.Control}/>
-									</Col>
-								</Form.Group>
-								<Form.Group as={Row}>
-									<Form.Label column>Start Y</Form.Label>
-									<Col sm="10">
-										<Field column className="mb-1" name="displayButtonLayoutParams.startY"
-												type="number" as={Form.Control}/>
-									</Col>
-								</Form.Group>	
-									<Form.Group as={Row}>
-									<Form.Label column>Button Radius</Form.Label>
-									<Col sm="10">
-										<Field column className="mb-1" name="displayButtonLayoutParams.buttonRadius"
-												type="number" as={Form.Control}/>
-									</Col>
-								</Form.Group>
-								<Form.Group as={Row}>
-									<Form.Label column>Button Padding</Form.Label>
-									<Col sm="10">
-										<Field column className="mb-1" name="displayButtonLayoutParams.buttonPadding"
-												type="number" as={Form.Control}/>
-									</Col>
-								</Form.Group>		
-							</Col>
-							<Col sm="6">
-								<Form.Group as={Row}>
-									<Form.Label column>Start X</Form.Label>
-									<Col sm="10">
-										<Field column className="mb-1" name="displayButtonLayoutParamsRight.startX"
-												type="number" as={Form.Control}/>
-									</Col>
-								</Form.Group>
-								<Form.Group as={Row}>
-									<Form.Label column>Start Y</Form.Label>
-									<Col sm="10">
-										<Field column className="mb-1" name="displayButtonLayoutParamsRight.startY"
-												type="number" as={Form.Control}/>
-									</Col>
-								</Form.Group>	
-									<Form.Group as={Row}>
-									<Form.Label column>Button Radius</Form.Label>
-									<Col sm="10">
-										<Field column className="mb-1" name="displayButtonLayoutParamsRight.buttonRadius"
-												type="number" as={Form.Control}/>
-									</Col>
-								</Form.Group>
-								<Form.Group as={Row}>
-									<Form.Label column>Button Padding</Form.Label>
-									<Col sm="10">
-										<Field column className="mb-1" name="displayButtonLayoutParamsRight.buttonPadding"
-												type="number" as={Form.Control}/>
-									</Col>
-								</Form.Group>
-							</Col>
-						</Row>
-						<Row className="mb-3">
-							<FormSelect
 									label="Display Saver Timeout"
 									name="displaySaverTimeout"
 									className="form-select-sm"
@@ -514,18 +450,78 @@ export default function DisplayConfigPage() {
 									{DISPLAY_SAVER_TIMEOUT_CHOICES.map((o, i) => <option key={`displaySaverTimeout-option-${i}`} value={o.value}>{o.label}</option>)}
 							</FormSelect>
 						</Row>
-						<Row>
-							<Field name="splashImage">
-								{({
-									field, // { name, value, onChange, onBlur }
-									form, // also values, setXXXX, handleXXXX, dirty, isValid, status, etc.
-									meta,
-								}) => (
-									<div className="mt-3">
-										<Canvas onChange={base64 => onChangeCanvas(base64, form, field)} value={field.value} />
-									</div>
-								)}
-							</Field>
+						<Row className="mb-3">
+							<Col sm="3">
+								<Field name="splashImage">
+									{({
+										field, // { name, value, onChange, onBlur }
+										form, // also values, setXXXX, handleXXXX, dirty, isValid, status, etc.
+										meta,
+									}) => (
+											<Canvas onChange={base64 => onChangeCanvas(base64, form, field)} value={field.value} />
+									)}
+								</Field>	
+							</Col>
+							<Col sm="3">
+								<Form.Group as={Row}>
+									<Form.Label column>Start X</Form.Label>
+									<Col sm="6">
+										<Field column className="mb-1" name="displayButtonLayoutParams.startX"
+												type="number" as={Form.Control}/>
+									</Col>
+								</Form.Group>
+								<Form.Group as={Row}>
+									<Form.Label column>Start Y</Form.Label>
+									<Col sm="6">
+										<Field column className="mb-1" name="displayButtonLayoutParams.startY"
+												type="number" as={Form.Control}/>
+									</Col>
+								</Form.Group>	
+									<Form.Group as={Row}>
+									<Form.Label column>Button Radius</Form.Label>
+									<Col sm="6">
+										<Field column className="mb-1" name="displayButtonLayoutParams.buttonRadius"
+												type="number" as={Form.Control}/>
+									</Col>
+								</Form.Group>
+								<Form.Group as={Row}>
+									<Form.Label column>Button Padding</Form.Label>
+									<Col sm="6">
+										<Field column className="mb-1" name="displayButtonLayoutParams.buttonPadding"
+												type="number" as={Form.Control}/>
+									</Col>
+								</Form.Group>		
+							</Col>
+							<Col sm="3">
+								<Form.Group as={Row}>
+									<Form.Label column>Start X</Form.Label>
+									<Col sm="6">
+										<Field column className="mb-1" name="displayButtonLayoutParamsRight.startX"
+												type="number" as={Form.Control}/>
+									</Col>
+								</Form.Group>
+								<Form.Group as={Row}>
+									<Form.Label column>Start Y</Form.Label>
+									<Col sm="6">
+										<Field column className="mb-1" name="displayButtonLayoutParamsRight.startY"
+												type="number" as={Form.Control}/>
+									</Col>
+								</Form.Group>	
+									<Form.Group as={Row}>
+									<Form.Label column>Button Radius</Form.Label>
+									<Col sm="6">
+										<Field column className="mb-1" name="displayButtonLayoutParamsRight.buttonRadius"
+												type="number" as={Form.Control}/>
+									</Col>
+								</Form.Group>
+								<Form.Group as={Row}>
+									<Form.Label column>Button Padding</Form.Label>
+									<Col sm="6">
+										<Field column className="mb-1" name="displayButtonLayoutParamsRight.buttonPadding"
+												type="number" as={Form.Control}/>
+									</Col>
+								</Form.Group>
+							</Col>
 						</Row>
 						<div className="mt-3">
 							<Button type="submit">Save</Button>
@@ -638,13 +634,12 @@ const Canvas = ({value: bitsArray, onChange}) => {
 		setInverted(!inverted);
 	}
 
-	return (<div style={{ display: "flex", alignItems: "center" }}>
-		<canvas ref={canvasRef} width="128" height="64" style={{ background: 'black' }} />
-		<div style={{ marginLeft: "11px" }}>
-			<input type="file" id="image-input" accept="image/jpeg, image/png, image/jpg" onChange={onImageAdd} />
-			<br/>
-			<input type="checkbox" checked={inverted} onChange={toggleInverted}/> Invert
+	return (<div>
+		<canvas ref={canvasRef} width="128" height="64" className='mb-3' />
+		<Form.Group className="mb-3 sm-1">
+			<Form.Control className='mb-3' type="file" id="image-input" accept="image/jpeg, image/png, image/jpg" onChange={onImageAdd} />
+			<Form.Check id='invert' label='Invert' onChange={toggleInverted} />
 			{/* <ErrorMessage name="splashImage" /> */}
-		</div>
+		</Form.Group>
 	</div>)
 }
