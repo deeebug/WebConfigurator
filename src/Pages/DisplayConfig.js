@@ -60,6 +60,14 @@ const SPLASH_MODES = [
 	{ label: 'Disabled', value: 3 },         // NOSPLASH
 ];
 
+const SPLASH_DURATION_CHOICES = [
+	{ label: 'Default', value: 0 },
+	{ label: '5 seconds', value: 5000 },
+	{ label: '10 seconds', value: 10000 },
+	{ label: '30 seconds', value: 30000 },
+	{ label: 'Always ON', value: -1 }
+];
+
 const DISPLAY_SAVER_TIMEOUT_CHOICES = [
 	{ label: 'Off', value: 0 },
 	{ label: '1 minute', value: 1 },
@@ -88,6 +96,7 @@ const defaultValues = {
 	invertDisplay: false,
 	buttonLayout: 0,
 	buttonLayoutRight: 3,
+	splashDuration: 0,
 	splashMode: 3,
 	splashImage: Array(16*64).fill(0), // 128 columns represented by bytes so 16 and 64 rows
 	invertSplash: false,
@@ -110,8 +119,8 @@ const defaultValues = {
 
 let usedPins = [];
 
-const buttonLayoutSchema = yup.number().required().oneOf(BUTTON_LAYOUTS.map(o => o.value)).label('Button Layout Left')
-const buttonLayoutRightSchema = yup.number().required().oneOf(BUTTON_LAYOUTS_RIGHT.map(o => o.value)).label('Button Layout Right')
+const buttonLayoutSchema = yup.number().required().label('Button Layout Left')
+const buttonLayoutRightSchema = yup.number().required().label('Button Layout Right')
 
 const schema = yup.object().shape({
 	enabled: yup.number().label('Enabled?'),
@@ -139,6 +148,7 @@ const schema = yup.object().shape({
 			buttonRadius: yup.number().required().min(0).max(20).label('Button Radius'),
 			buttonPadding: yup.number().required().min(0).max(20).label('Button Padding')
 	}),
+	splashDuration: yup.number().required().oneOf(SPLASH_DURATION_CHOICES.map(o => o.value)).label('Splash Duration'),
 	displaySaverTimeout: yup.number().required().oneOf(DISPLAY_SAVER_TIMEOUT_CHOICES.map(o => o.value)).label('Display Saver'),
 });
 
@@ -153,7 +163,9 @@ const FormContext = () => {
 			data.splashImage = splashImageResponse.splashImage;
 			const displayButtonLayouts = await WebApi.getDisplayButtonLayouts();
 			data.displayButtonLayouts = displayButtonLayouts.layouts;
+			BUTTON_LAYOUTS.splice(0, BUTTON_LAYOUTS.length, ...displayButtonLayouts.layouts);
 			data.displayButtonLayoutsRight = displayButtonLayouts.layoutsRight;
+			BUTTON_LAYOUTS_RIGHT.splice(0, BUTTON_LAYOUTS_RIGHT.length, ...displayButtonLayouts.layoutsRight);
 			setValues(data);
 		}
 		fetchData();
@@ -174,8 +186,8 @@ const FormContext = () => {
 			values.buttonLayoutRight = parseInt(values.buttonLayoutRight);
 		if (!!values.splashMode)
 			values.splashMode = parseInt(values.splashMode);
-		if (!!values.splashChoice)
-			values.splashChoice = parseInt(values.splashChoice);
+		if (!!values.splashDuration)
+			values.splashDuration = parseInt(values.splashDuration);
 
 		await WebApi.setDisplayOptions(values, true)
 	}, [values, setValues]);
@@ -195,8 +207,8 @@ const FormContext = () => {
 			values.buttonLayoutRight = parseInt(values.buttonLayoutRight);
 		if (!!values.splashMode)
 			values.splashMode = parseInt(values.splashMode);
-		if (!!values.splashChoice)
-			values.splashChoice = parseInt(values.splashChoice);
+		if (!!values.splashDuration)
+			values.splashDuration = parseInt(values.splashDuration);
 
 		await WebApi.setDisplayOptions(values, true)
 	}, [values.splashImage]);
@@ -206,26 +218,32 @@ const FormContext = () => {
 		console.log('values.displayButtonLayouts', values.displayButtonLayouts);
 		console.log('values.buttonLayout', values.buttonLayout);
 		console.log('layout', layout);
-		const newValues = {...values};
-		newValues.displayButtonLayoutParams.startX        = layout.params.startX       
-		newValues.displayButtonLayoutParams.startY        = layout.params.startY       
-		newValues.displayButtonLayoutParams.buttonRadius  = layout.params.buttonRadius 
-		newValues.displayButtonLayoutParams.buttonPadding = layout.params.buttonPadding
-		setValues(newValues);
+		if (layout) {
+			const newValues = {...values};
+			newValues.displayButtonLayoutParams.startX        = layout.params.startX       
+			newValues.displayButtonLayoutParams.startY        = layout.params.startY       
+			newValues.displayButtonLayoutParams.buttonRadius  = layout.params.buttonRadius 
+			newValues.displayButtonLayoutParams.buttonPadding = layout.params.buttonPadding
+			setValues(newValues);
+		}
 	}, [values.buttonLayout]);
 
 	useEffect(async () => {
 		const layoutRight = values.displayButtonLayoutsRight.find(a => a.value === values.buttonLayoutRight);
-		const newValues = {...values};
-		newValues.displayButtonLayoutParamsRight.startX        = layoutRight.params.startX       
-		newValues.displayButtonLayoutParamsRight.startY        = layoutRight.params.startY       
-		newValues.displayButtonLayoutParamsRight.buttonRadius  = layoutRight.params.buttonRadius 
-		newValues.displayButtonLayoutParamsRight.buttonPadding = layoutRight.params.buttonPadding
-		setValues(newValues);
+		if (layoutRight) {
+			const newValues = {...values};
+			newValues.displayButtonLayoutParamsRight.startX        = layoutRight.params.startX       
+			newValues.displayButtonLayoutParamsRight.startY        = layoutRight.params.startY       
+			newValues.displayButtonLayoutParamsRight.buttonRadius  = layoutRight.params.buttonRadius 
+			newValues.displayButtonLayoutParamsRight.buttonPadding = layoutRight.params.buttonPadding
+			setValues(newValues);
+		}
 	}, [values.buttonLayoutRight]);
 
 	return null;
 };
+
+const isButtonLayoutCustom = (values) => values.buttonLayout == 12 || values.buttonLayoutRight == 16
 
 export default function DisplayConfigPage() {
 	const [saveMessage, setSaveMessage] = useState('');
@@ -400,7 +418,9 @@ export default function DisplayConfigPage() {
 								{ON_OFF_OPTIONS.map((o, i) => <option key={`invertDisplay-option-${i}`} value={o.value}>{o.label}</option>)}
 							</FormSelect>
 						</Row>
-						<Row>
+						<Row>	
+						</Row>
+						<Row className="mb-3">
 							<FormSelect
 								label="Splash Mode"
 								name="splashMode"
@@ -452,6 +472,18 @@ export default function DisplayConfigPage() {
 						</Row>
 						<Row className="mb-3">
 							<Col sm="3">
+							<FormSelect
+									label="Splash Duration"
+									name="splashDuration"
+									className="form-select-sm"
+									groupClassName="mb-3"
+									value={values.splashDuration}
+									error={errors.splashDuration}
+									isInvalid={errors.splashDuration}
+									onChange={handleChange}
+								>
+									{SPLASH_DURATION_CHOICES.map((o, i) => <option key={`splashDuration-option-${i}`} value={o.value}>{o.label}</option>)}
+							</FormSelect>
 								<Field name="splashImage">
 									{({
 										field, // { name, value, onChange, onBlur }

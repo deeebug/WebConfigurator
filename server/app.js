@@ -53,24 +53,8 @@ app.get('/api/getDisplayOptions', (req, res) => {
 		buttonLayoutRight: 3,
 		splashMode: 3,
 		splashChoice: 0,
+		splashDuration: 0,
 		splashImage: Array(16*64).fill(255),
-		buttonLayoutCustomOptions:{
-			params: {
-				layout: 2,
-				startX: 8,
-				startY: 28,
-				buttonRadius: 8,
-				buttonPadding: 2
-			},
-			paramsRight: {
-				layout: 9,
-				startX: 8,
-				startY: 28,
-				buttonRadius: 8,
-				buttonPadding: 2
-			}
-		},
-
 		displaySaverTimeout: 0,
 	}
 	console.log('data', data);
