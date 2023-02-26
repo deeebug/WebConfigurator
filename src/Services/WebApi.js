@@ -103,7 +103,9 @@ async function getLedOptions() {
 }
 
 async function setLedOptions(options) {
-	return axios.post(`${baseUrl}/api/setLedOptions`, options)
+	const newOptions = { ...options };
+	if (!!options.ledLayout) newOptions.ledLayout = parseInt(options.ledLayout);
+	return axios.post(`${baseUrl}/api/setLedOptions`, newOptions)
 		.then((response) => {
 			console.log(response.data);
 			return true;
@@ -187,6 +189,12 @@ async function getDisplayButtonLayouts() {
 	return Promise.resolve({ ...layout, ...layoutRight });
 }
 
+async function getLEDButtonLayouts() {
+	return axios.get(`${baseUrl}/api/getLEDButtonLayouts`)
+		.then((response) => response.data)
+		.catch(console.error);
+}
+
 const WebApi = {
 	resetSettings,
 	getDisplayOptions,
@@ -205,6 +213,7 @@ const WebApi = {
 	getMemoryReport,
 	reboot,
 	getDisplayButtonLayouts,
+	getLEDButtonLayouts,
 };
 
 export default WebApi;

@@ -31,6 +31,7 @@ const defaultValue = {
 	ledFormat: 0,
 	ledLayout: 0,
 	ledsPerButton: 2,
+	layouts: []
 };
 
 let usedPins = [];
@@ -41,7 +42,7 @@ const schema = yup.object().shape({
 	// eslint-disable-next-line no-template-curly-in-string
 	dataPin           : yup.number().required().min(-1).max(29).test('', '${originalValue} is already assigned!', (value) => usedPins.indexOf(value) === -1).label('Data Pin'),
 	ledFormat         : yup.number().required().positive().integer().min(0).max(3).label('LED Format'),
-	ledLayout         : yup.number().required().positive().integer().min(0).max(2).label('LED Layout'),
+	ledLayout         : yup.number().required().positive().integer().label('LED Layout'),
 	ledsPerButton      : yup.number().required().positive().integer().min(1).label('LEDs Per Pixel'),
 });
 
@@ -78,6 +79,7 @@ const FormContext = ({ buttonLabels, ledButtonMap, ledFormat, setDataSources }) 
 	useEffect(() => {
 		async function fetchData() {
 			const data = await WebApi.getLedOptions();
+			const { layouts } = await WebApi.getLEDButtonLayouts();
 
 			let available = {};
 			let assigned = {};
@@ -94,6 +96,7 @@ const FormContext = ({ buttonLabels, ledButtonMap, ledFormat, setDataSources }) 
 				getLedButtons(buttonLabels, assigned, true),
 			];
 			usedPins = data.usedPins;
+			data.layouts = layouts;
 			setDataSources(dataSources);
 			setValues(data);
 		}
@@ -175,7 +178,7 @@ export default function LEDConfigPage() {
 								isInvalid={errors.ledLayout}
 								onChange={handleChange}
 							>
-								{BUTTON_LAYOUTS.map((o, i) => <option key={`ledLayout-option-${i}`} value={o.value}>{o.label}</option>)}
+								{values.layouts.map((o, i) => <option key={`ledLayout-option-${i}`} value={o.value}>{o.label}</option>)}
 							</FormSelect>
 						</Row>
 						<Row>
