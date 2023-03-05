@@ -148,8 +148,8 @@ const schema = yup.object().shape({
 			buttonRadius: yup.number().required().min(0).max(20).label('Button Radius'),
 			buttonPadding: yup.number().required().min(0).max(20).label('Button Padding')
 	}),
-	splashDuration: yup.number().required().oneOf(SPLASH_DURATION_CHOICES.map(o => o.value)).label('Splash Duration'),
-	displaySaverTimeout: yup.number().required().oneOf(DISPLAY_SAVER_TIMEOUT_CHOICES.map(o => o.value)).label('Display Saver'),
+	splashDuration: yup.number().required().min(0).label('Splash Duration'),
+	displaySaverTimeout: yup.number().required().min(0).label('Display Saver'),
 });
 
 const FormContext = () => {
@@ -418,8 +418,6 @@ export default function DisplayConfigPage() {
 								{ON_OFF_OPTIONS.map((o, i) => <option key={`invertDisplay-option-${i}`} value={o.value}>{o.label}</option>)}
 							</FormSelect>
 						</Row>
-						<Row>	
-						</Row>
 						<Row className="mb-3">
 							<FormSelect
 								label="Splash Mode"
@@ -457,33 +455,20 @@ export default function DisplayConfigPage() {
 							>
 								{values.displayButtonLayoutsRight.map((o, i) => <option key={`buttonLayoutRight-option-${i}`} value={o.value}>{o.label}</option>)}
 							</FormSelect>
-							<FormSelect
-									label="Display Saver Timeout"
-									name="displaySaverTimeout"
-									className="form-select-sm"
-									groupClassName="col-sm-3 mb-3"
-									value={values.displaySaverTimeout}
-									error={errors.displaySaverTimeout}
-									isInvalid={errors.displaySaverTimeout}
-									onChange={handleChange}
-								>
-									{DISPLAY_SAVER_TIMEOUT_CHOICES.map((o, i) => <option key={`displaySaverTimeout-option-${i}`} value={o.value}>{o.label}</option>)}
-							</FormSelect>
+							<FormControl type="number"
+								label="Splash Duration (seconds, 0 for Always On)"
+								name="splashDuration"
+								className="form-select-sm"
+								groupClassName="col-sm-3 mb-3"
+								value={values.splashDuration}
+								error={errors.splashDuration}
+								isInvalid={errors.splashDuration}
+								onChange={handleChange}
+								min={0}
+							/>
 						</Row>
 						<Row className="mb-3">
 							<Col sm="3">
-							<FormSelect
-									label="Splash Duration"
-									name="splashDuration"
-									className="form-select-sm"
-									groupClassName="mb-3"
-									value={values.splashDuration}
-									error={errors.splashDuration}
-									isInvalid={errors.splashDuration}
-									onChange={handleChange}
-								>
-									{SPLASH_DURATION_CHOICES.map((o, i) => <option key={`splashDuration-option-${i}`} value={o.value}>{o.label}</option>)}
-							</FormSelect>
 								<Field name="splashImage">
 									{({
 										field, // { name, value, onChange, onBlur }
@@ -553,6 +538,19 @@ export default function DisplayConfigPage() {
 												type="number" as={Form.Control}/>
 									</Col>
 								</Form.Group>
+							</Col>
+							<Col sm="3">
+								<FormControl type="number"
+									label="Display Saver Timeout (minutes)"
+									name="displaySaverTimeout"
+									className="form-select-sm"
+									groupClassName="mb-3"
+									value={values.displaySaverTimeout}
+									error={errors.displaySaverTimeout}
+									isInvalid={errors.displaySaverTimeout}
+									onChange={handleChange}
+									min={0}
+								/>
 							</Col>
 						</Row>
 						<div className="mt-3">
